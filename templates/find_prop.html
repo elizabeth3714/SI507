@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block head %} 
+
+{% endblock %}
+
+{% block body %} 
+
+<head>
+    <meta charset="UTF-8">
+    <title>Recommendation Display</title>
+</head>
+<body>
+    <h1>Recommended Property Details</h1>
+    {% if recommd_property %}
+        <div>
+            {% for key, value in recommd_property.items() %}
+            <p><strong>{{ key }}:</strong> {{ value[0] }}</p>
+            {% endfor %}
+        </div>
+    {% else %}
+    <p>No recommendation available.</p>
+    {% endif %}
+    <div>
+        <p><strong>Similarity score:</strong> {{ score }}</p>
+    </div>
+    <a href="/">Back to Search</a>
+</body>
+
+
+{% endblock %}
+
+{% block footer %}
+{% endblock %}
