@@ -56,22 +56,15 @@ class HomeSearch:
 
         for i in range(0, n_rows-1):
             similarity_score = 0
-
-            # Iterate through each column
-            # for j in range(1, n_cols-1):
-            #     # Add to similarity score if column value is the same 
-            #     # (aka properties sharing the same feature)
-            #     if curr_property.iloc[j] == property_list.iloc[i, j] \
-            #         and curr_property.iloc[7] != property_list.iloc[i, 7]: # can't be the same property
-            #         similarity_score += 1
             
+            # find properties with similar features
             for col in property_list.columns:
                 if curr_property[col].iloc[0] == property_list[col].iloc[i]\
                     and curr_property['mls_id'][0] != property_list['mls_id'][i]:
                     similarity_score += 1
                 else:
                     pass
-            
+            # search the best match that have the most common features
             if similarity_score > similarity_score_max:
                 similarity_score_max = similarity_score
                 recommd_property = property_list.iloc[i].to_dict()
@@ -99,7 +92,7 @@ class HomeSearch:
         excluded_columns = ['mls_id', 'street', 'latitude', 'longitude', 'primary_photo', 'property_url']
         included_columns = [col for col in property_list.columns if col not in excluded_columns]
 
-        # Creating a mapping from features to home IDs
+        # Creating a graph mapping from features to home IDs
         feature_to_ids = {}
         for col in included_columns:
             for idx, value in enumerate(property_list[col]):
@@ -110,6 +103,7 @@ class HomeSearch:
                 feature_to_ids[feature].add(homeID[idx])
         # id_to_feature = {(id, feature) for feature, ids in feature_to_ids.items() for id in ids}
 
+        # homeID-shared_feature-homeID as the graph structure
         for feature, mlsID in feature_to_ids.items():
             for mlsID1 in mlsID:
                 for mlsID2 in mlsID:
