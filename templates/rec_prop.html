@@ -5,11 +5,10 @@
 integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
 crossorigin=""/>
 
-
-
 {% endblock %}
 
 {% block body %} 
+
 
 <head>
     <meta charset="UTF-8">
@@ -17,11 +16,11 @@ crossorigin=""/>
 </head>
 <body>
     <h2>Recommended Property Details</h2>
-    {% if recommd_property %}
+    {% if recommd_property2 %}
         <div>
 
 
-            {% for key, value in recommd_property.items() %}
+            {% for key, value in recommd_property2.items() %}
                 {% if key in ['zip_code', 'beds', 'price_range', 'style', 'sqft', 'neighborhoods', 'street'] %}
                 <p><strong>{{ key }}:</strong> {{ value[0] }}</p>
 
@@ -43,8 +42,8 @@ crossorigin=""/>
                     <div id="map" style="width:100%; height:500px;"></div>
                 
                     <script type="text/javascript">
-                    var lat = {{ recommd_property.latitude[0] }};
-                    var lon = {{ recommd_property.longitude[0] }};
+                    var lat = {{ recommd_property2.latitude[0] }};
+                    var lon = {{ recommd_property2.longitude[0] }};
                     var map = L.map('map').setView([lat, lon], 14);
 
                     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -74,11 +73,7 @@ crossorigin=""/>
     <a href="/">Back to Search</a>
 </body>
 
-<form action="/submit3" method="post">
-<div class="content">
-    <p><input type="submit" value="More Recommendation"/></p>
-</div>
-</form>
+
 
 {% endblock %}
 
