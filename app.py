@@ -1,5 +1,7 @@
-from flask import Flask, render_template, url_for, jsonify, request, redirect
+from flask import Flask, render_template, url_for, jsonify, request, redirect, abort
 from flask_sqlalchemy import SQLAlchemy
+from flask_googlemaps import GoogleMaps, Map, icons
+# from markupsafe import Markup
 from datetime import datetime, UTC
 import datetime
 from DataStructure import *
@@ -275,33 +277,6 @@ def index():
     return render_template('index.html', options=options_html)
     # return render_template('index.html')
 
-@app.route('/submit', methods=['GET', 'POST'])
-def submit():
-    # form = MyForm()
-    if request.method == 'POST':
-        city = request.form.get('city')
-        zip_code = request.form.get('zipcode')
-        bed = request.form.get('bed')
-        price_range = request.form.get('price_range')
-        # neighborhood = request.form.get('neighborhood')        
-        style = request.form.get('style')
-        sqft = request.form.get('sqft')
-        
-        property_input_list['zip_code'] = request.form.get('zipcode')
-        property_input_list['beds'] = request.form.get('bed')
-        property_input_list['price_range'] = request.form.get('price_range')
-        property_input_list['style'] = request.form.get('style')
-        property_input_list['sqft'] = request.form.get('sqft')
-        property_input_list['neighborhoods'] = request.form.get('neighborhoods')
-        
-
-        # Now you can use these values in your application logic
-        result = process_input(city, zip_code, bed, price_range, style, sqft)  # hypothetical function or class method
-        # return redirect(url_for('index'))  # Or redirect to another page that shows the result
-        # return render_template('index.html', result=result)
-        return jsonify(result=result), property_input_list
-    return 'Submission failed', 400
-
 
 def process_input(city, zip_code, bed, price_range, style, sqft):
     # Process the input values
@@ -316,6 +291,7 @@ homesearch = HomeSearch(file_path)
 def get_recommendation():
     file_path = 'HomeHarvest_20240425_184034_philly_forrent365days.csv'
     homesearch = HomeSearch(file_path)
+    global recommd_property
     recommd_property = {}  # Default empty dictionary
     score = 0              # Default score
     property_input_list = {
@@ -350,7 +326,8 @@ def get_recommendation():
         
         # return recommd_property, score
         # return jsonify({'recommendation':recommd_property}, {'score': score})
-        return render_template('find_prop.html', recommd_property=recommd_property, score=score)
+        
+        return render_template('find_prop.html', recommd_property=recommd_property, score=score), recommd_property
         # print("Recommendation Property:", recommd_property)
         # print("Score:", score)
 
@@ -358,7 +335,141 @@ def get_recommendation():
         return render_template('find_prop.html', recommd_property={}, score=0)
 
 
+@app.route('/submit3', methods=['GET','POST']) #get_recommendation
+def get_recommendation2():
+    file_path = 'HomeHarvest_20240425_184034_philly_forrent365days.csv'
+    homesearch = HomeSearch(file_path)
+    # _, recommd_property = self.get_recommendation()
+    # recommd_property = {}  # Default empty dictionary
+    score = 0              # Default score
+    # if request.method == 'POST':
+        # Safely get the form data using request.form.get()
+        # recommd_property = {
+        #     # 'city': request.form.get('city'),
+        #     # 'zip_code': request.form.get('zipcode'),
+        #     # 'beds': request.form.get('beds'),
+        #     # 'price_range': request.form.get('price_range'),
+        #     # 'style': request.form.get('style'),
+        #     # 'sqft': request.form.get('sqft'),
+        #     # 'mls_id': request.form.get('mls_id'),
+        #     # 'neighborhoods': request.form.get('neighborhoods'),
+        #     # 'street': request.form.get('street'),
+        #     # 'latitude': request.form.get('latitude'),
+        #     # 'longitude': request.form.get('longitude'),
+        #     # 'primary_photo': request.form.get('primary_photo'),
+        #     # 'property_url': request.form.get('property_url')
+        #     'mls_id': request.form.get('mls_id', None),
+        #     'zip_code': request.form.get('zip_code', None),
+        #     'beds': request.form.get('beds', 0),
+        #     'price_range': request.form.get('price_range', None),
+        #     'style': request.form.get('style', None),
+        #     'sqft': request.form.get('sqft', 0),
+        #     'neighborhoods': request.form.get('neighborhoods', None),
+        #     'street': request.form.get('street', None),
+        #     'latitude': float(request.form.get('latitude', 0)),
+        #     'longitude': float(request.form.get('longitude', 0)),
+        #     'primary_photo': request.form.get('primary_photo', None),
+        #     'property_url': request.form.get('property_url', None)
+        # }
+        # print("Form Data Received:", recommd_property)
+        # city = request.form.get('city')
+        # zip_code = request.form.get('zipcode')
+        # beds = request.form.get('beds')
+        # price_range = request.form.get('price_range')
+        # style = request.form.get('style')
+        # sqft = request.form.get('sqft')
+        # mls_id = request.form.get('mls_id')
+        # neighborhoods = request.form.get('neighborhoods')
+        # street = request.form.get('street')
+        # latitude = request.form.get('latitude')
+        # longitude = request.form.get('longitude')
+        # primary_photo = request.form.get('primary_photo')
+        # property_url = request.form.get('property_url')
+        
+        # recommd_property = {'city': city, 'zip_code': zip_code, 'beds': beds, 'price_range': price_range, 
+        #                     'style': style, 'sqft': sqft, 'mls_id': mls_id, 'neighborhoods': neighborhoods, 
+        #                     'street': street, 'latitude': latitude, 'longitude': longitude, 
+        #                     'primary_photo': primary_photo, 'property_url': property_url}
+    property_input_list = {
+        'mls_id': request.form.get('mls_id', None),
+        'zip_code': request.form.get('zip_code', None),
+        'beds': request.form.get('beds', 0),
+        'price_range': request.form.get('price_range', None),
+        'style': request.form.get('style', None),
+        'sqft': request.form.get('sqft', 0),
+        'neighborhoods': request.form.get('neighborhoods', None),
+        'street': request.form.get('street', None),
+        'latitude': float(request.form.get('latitude', 0)),
+        'longitude': float(request.form.get('longitude', 0)),
+        'primary_photo': request.form.get('primary_photo', None),
+        'property_url': request.form.get('property_url', None)
+        }
+    # recommd_property = {
+    #     'mls_id': request.get('mls_id', None),
+    #     'zip_code': request.get('zip_code', None),
+    #     'beds': request.get('beds', 0),
+    #     'price_range': request.get('price_range', None),
+    #     'style': request.get('style', None),
+    #     'sqft': request.get('sqft', 0),
+    #     'neighborhoods': request.get('neighborhoods', None),
+    #     'street': request.get('street', None),
+    #     'latitude': float(request.get('latitude', 0)),
+    #     'longitude': float(request.get('longitude', 0)),
+    #     'primary_photo': request.get('primary_photo', None),
+    #     'property_url': request.get('property_url', None)
+    #     }    
 
+    property_input_list = recommd_property
+    curr_property = pd.DataFrame(property_input_list)  # use the input from the form
+    # key_order = ['mls_id', 'zip_code', 'beds', 'price_range', 'style', 'sqft', 'neighborhoods',
+    #                 'street', 'latitude', 'longitude', 'primary_photo', 'property_url']
+    # curr_property = {k: curr_property[k] for k in key_order}
+    # curr_property = {key: [value] for key, value in curr_property.items()}
+    # curr_property = pd.DataFrame(curr_property)
+    recommd_property2, score0 = homesearch.recommendation(curr_property)
+    key_order = ['mls_id', 'zip_code', 'beds', 'price_range', 'style', 'sqft', 'neighborhoods',
+                    'street', 'latitude', 'longitude', 'primary_photo', 'property_url']    
+    recommd_property2 = {k: recommd_property2[k] for k in key_order}
+    adjList, n_cooccurrence = homesearch.generateAdjList()
+    ID1 = curr_property['mls_id'][0]
+    # ID1 = list(curr_property.keys())[0]
+    ID2 = list(adjList.keys())[0]
+    score = homesearch.query_co_occurrence(n_cooccurrence, ID1, ID2)
+
+    # # Converting each scalar value to a list
+    # property_input_list = {key: [value] for key, value in property_input_list.items()}
+    # if request.method == 'POST':  
+    #     curr_property = pd.DataFrame(property_input_list)  # use the input from the form
+    #     recommd_property, score0 = homesearch.recommendation(curr_property)
+    #     adjList, n_cooccurrence = homesearch.generateAdjList()
+    #     # ID1 = curr_property['mls_id'][0]
+    #     ID1 = list(curr_property.keys())[0]
+    #     ID2 = list(adjList.keys())[0]
+    #     score = homesearch.query_co_occurrence(n_cooccurrence, ID1, ID2)
+    print(recommd_property2, score)
+    print(ID1, ID2)
+
+    return render_template('rec_prop.html', recommd_property2=recommd_property2, score=score)
+
+
+        # return jsonify({'recommendation': curr_property}), 200
+        # return print(curr_property)
+      
+        
+        # return recommd_property, score
+        # return jsonify({'recommendation':recommd_property}, {'score': score})
+        
+        # print("Recommendation Property:", recommd_property)
+        # print("Score:", score)
+    # print(recommd_property)
+    # return jsonify({'property': recommd_property2}), 200
+    # return jsonify(property_input_list), 200
+    # return jsonify(curr_property), 200
+    # return jsonify(ID1, ID2)
+
+
+    # else:
+        # return render_template('find_prop.html', recommd_property={}, score=0)
 
 
 
